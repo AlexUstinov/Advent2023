@@ -4,7 +4,7 @@ use std::path::Path;
 use std::error::Error;
 
 #[cfg(test)]
-pub async fn load_strings(file_name: impl AsRef<Path>) -> Result<Vec<String>, Box<dyn Error>> {
+pub async fn load_lines(file_name: impl AsRef<Path>) -> Result<Vec<String>, Box<dyn Error>> {
     use tokio::{fs::File, io::{BufReader, AsyncBufReadExt}};
     use tokio_stream::{wrappers::LinesStream, StreamExt};
 
