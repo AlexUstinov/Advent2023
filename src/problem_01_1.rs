@@ -85,7 +85,7 @@ mod test {
 
     #[tokio::test]
     async fn solve() {
-        let file_name: PathBuf = [env!("CARGO_MANIFEST_DIR"), "input", "advent_01_1.txt"].iter().collect();
+        let file_name: PathBuf = [env!("CARGO_MANIFEST_DIR"), "input", "day_01.txt"].iter().collect();
 
         let sum = Solution::find_calibration_sum(file_name).await;
         println!("{sum:?}");
