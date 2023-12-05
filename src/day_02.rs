@@ -49,26 +49,20 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use super::Solution;
     use crate::util::load_lines;
     use tokio;
 
     #[tokio::test]
     async fn solve_part1() {
-        let file_name: PathBuf = [env!("CARGO_MANIFEST_DIR"), "input", "day_02.txt"].iter().collect();
-
-        let lines = load_lines(file_name).await.unwrap();
+        let lines = load_lines("day_02.txt").await.unwrap();
         let result = Solution::find_playable_games(lines);
         println!("{result:?}");
     }
 
     #[tokio::test]
     async fn solve_part2() {
-        let file_name: PathBuf = [env!("CARGO_MANIFEST_DIR"), "input", "day_02.txt"].iter().collect();
-
-        let lines = load_lines(file_name).await.unwrap();
+        let lines = load_lines("day_02.txt").await.unwrap();
         let result = Solution::find_aggregate_cube_count(lines);
         println!("{result:?}");
     }

@@ -1,14 +1,15 @@
 #[cfg(test)]
-use std::path::Path;
-#[cfg(test)]
 use std::error::Error;
 
 #[cfg(test)]
-pub async fn load_lines(file_name: impl AsRef<Path>) -> Result<Vec<String>, Box<dyn Error>> {
+pub async fn load_lines(file_name: &str) -> Result<Vec<String>, Box<dyn Error>> {
+    use std::path::PathBuf;
     use tokio::{fs::File, io::{BufReader, AsyncBufReadExt}};
     use tokio_stream::{wrappers::LinesStream, StreamExt};
 
     let mut loaded_lines = Vec::new();
+
+    let file_name: PathBuf = [env!("CARGO_MANIFEST_DIR"), "input", file_name].iter().collect();
 
     let file = File::open(file_name).await?;
     let buffered = BufReader::new(file);
