@@ -9,6 +9,7 @@
   },
 
   "mounts": [
+    "type=bind,source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER:dev}/.ssh,consistency=consistent",
     // Special volume to persist bash history
     "type=volume,source=advent_2023-bashhistory,target=/commandhistory"
   ],
