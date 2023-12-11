@@ -46,11 +46,12 @@ impl Solution {
                         let (xx, yy) = (x+dx, y+dy);
                         if xx>=0 && xx < n && yy>=0 && yy < m {
                             let pipe = lines[xx as usize][yy as usize];
-                            let is_connected_pipe =
+                            let is_connected_pipe = current_pipe!=b'S' || (
                                 matches!((pipe, dir), (b'|' | b'F' | b'7', 'N')) ||
                                 matches!((pipe, dir), (b'-' | b'J' | b'7', 'E')) ||
                                 matches!((pipe, dir), (b'|' | b'J' | b'L', 'S')) ||
-                                matches!((pipe, dir), (b'-' | b'F' | b'L', 'W'));
+                                matches!((pipe, dir), (b'-' | b'F' | b'L', 'W'))
+                            );
                             if is_connected_pipe && visited.insert((xx, yy)) {
                                 queue.push_back((xx, yy));
                                 is_moved = true;
