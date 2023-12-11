@@ -15,47 +15,22 @@ fn count_num_ways_impl(data: Vec<(Vec<u8>, Vec<usize>)>) -> usize {
         let num = if first_spring == b'.' {
             get_num_ways(dp, &springs[1..], nums)
         } else {
-            (if first_spring == b'?' {
-                get_num_ways(dp, &springs[1..], nums)
-            } else {
-                0
-            }) + {
-                if let Some(first_num) = nums.get(0).map(|&num| num as usize) {
-                    if first_num > springs.len() {
-                        0
-                    } else {
-                        let can_match =
-                            springs[..first_num].iter().all(|&s| s == b'?' || s == b'#');
-                        if can_match
-                            && (first_num == springs.len()
-                                || springs[first_num] == b'.'
-                                || springs[first_num] == b'?')
-                        {
-                            get_num_ways(
-                                dp,
-                                &springs[(first_num + 1).min(springs.len())..],
-                                &nums[1..],
-                            )
-                        } else {
-                            0
-                        }
-                    }
-                } else {
-                    0
-                }
-            }
+            let num_if_first_works = (first_spring==b'?').then(|| get_num_ways(dp, &springs[1..], nums)).unwrap_or(0);
+            let num_if_first_doesnt_work = nums.get(0)
+                .map(|&broken_len| broken_len as usize)
+                .filter(|&broken_len| broken_len<=springs.len() && springs[..broken_len].iter().all(|&s| s == b'?' || s == b'#'))
+                .filter(|&broken_len| broken_len==springs.len() || springs[broken_len]!=b'#')
+                .map_or(0, |broken_len| get_num_ways(dp, &springs[(broken_len + 1).min(springs.len())..], &nums[1..]));
+
+            num_if_first_works + num_if_first_doesnt_work
         };
         dp.insert(dp_key, num);
         num
     }
 
-    let mut total_possibilities = 0;
-    for (springs, nums) in data {
-        let mut dp = HashMap::new();
-        total_possibilities += get_num_ways(&mut dp, &springs[..], &nums[..]);
-    }
-    total_possibilities
-
+    data.into_iter()
+        .map(|(springs, nums)| get_num_ways(&mut HashMap::new(), &springs[..], &nums[..]))
+        .sum()
 }
 
 impl Solution {
@@ -69,7 +44,7 @@ impl Solution {
                         Vec::from(springs.as_bytes()),
                         nums.split(',')
                             .filter_map(|num| num.parse::<usize>().ok())
-                            .collect::<Vec<_>>(),
+                            .collect::<Vec<_>>()
                     )
                 })
                 .unwrap();
