@@ -1,3 +1,5 @@
+use std::usize;
+
 pub struct Solution;
 
 impl Solution {
@@ -24,64 +26,28 @@ impl Solution {
     pub fn calculate_load_in_cycles(mut platform: Vec<Vec<u8>>, num_rotations: i32) -> i32 {
         fn rotate(mut platform: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
             let (n, m) = (platform.len(), platform[0].len());
+            let tilts: [(usize, usize, Box<dyn Fn(usize, usize) -> (usize, usize)>); 4] = [
+                (m, n, Box::new(|row, col| (row, col))),
+                (n, m, Box::new(|row, col| (n-col-1, row))),
+                (m, n, Box::new(|row, col| (m-row-1, n-col-1))),
+                (n, m, Box::new(|row, col| (col, m-row-1)))
+            ];
 
-            // tilt north
-            for col in 0..m {
-                let mut min_pos = 0;
-                for row in 0..n {
-                    match platform[row][col] {
-                        b'#' => min_pos = row + 1,
-                        b'O' => {
-                            platform[row][col] = b'.';
-                            platform[min_pos][col] = b'O';
-                            min_pos += 1;
-                        },
-                        _ => continue
-                    }
-                }
-            }
-            // tilt west
-            for row in 0..n {
-                let mut min_pos = 0;
-                for col in 0..m {
-                    match platform[row][col] {
-                        b'#' => min_pos = col + 1,
-                        b'O' => {
-                            platform[row][col] = b'.';
-                            platform[row][min_pos] = b'O';
-                            min_pos += 1;
-                        },
-                        _ => continue
-                    }
-                }
-            }
-            // tilt south
-            for col in 0..m {
-                let mut min_pos = n-1;
-                for row in (0..n).rev() {
-                    match platform[row][col] {
-                        b'#' => min_pos = row.saturating_sub(1),
-                        b'O' => {
-                            platform[row][col] = b'.';
-                            platform[min_pos][col] = b'O';
-                            min_pos = min_pos.saturating_sub(1);
-                        },
-                        _ => continue
-                    }
-                }
-            }
-            // tilt east
-            for row in 0..n {
-                let mut min_pos = m-1;
-                for col in (0..m).rev() {
-                    match platform[row][col] {
-                        b'#' => min_pos = col.saturating_sub(1),
-                        b'O' => {
-                            platform[row][col] = b'.';
-                            platform[row][min_pos] = b'O';
-                            min_pos = min_pos.saturating_sub(1);
-                        },
-                        _ => continue
+            for (row_size, col_size, transform) in tilts {
+                for col in 0..col_size {
+                    let mut min_pos = 0;
+                    for row in 0..row_size {
+                        let (tr, tc) = transform(row, col);
+                        match platform[tr][tc] {
+                            b'#' => min_pos = row + 1,
+                            b'O' => {
+                                platform[tr][tc] = b'.';
+                                let (tr_min, tc_min) = transform(min_pos, col);
+                                platform[tr_min][tc_min] = b'O';
+                                min_pos += 1;
+                            },
+                            _ => continue
+                        }
                     }
                 }
             }
