@@ -107,6 +107,7 @@ impl Solution {
     
 }
 
+#[cfg(test)]
 mod tests {
     use super::Solution;
     use crate::util::load_lines;
