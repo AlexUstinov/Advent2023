@@ -61,7 +61,7 @@ fn invert_rule(rule: (Param, Op, i32)) -> (Param, Op, i32) {
 }
 
 impl Solution {
-    pub fn solve1(lines: Vec<String>) -> i64 {
+    pub fn find_acceptable_parts(lines: Vec<String>) -> i64 {
         use std::collections::{VecDeque, HashMap};
 
         let (part_lines, flow_lines) = lines.into_iter().fold((vec![], vec![]), |(mut first, second), ln| {
@@ -115,7 +115,7 @@ impl Solution {
         rating
     }
 
-    pub fn solve2(lines: Vec<String>) -> i64 {
+    pub fn find_number_of_acceptable_param_combinations(lines: Vec<String>) -> i64 {
         use std::collections::{HashMap};
 
         let mut flow_lines = Vec::new();
@@ -212,14 +212,14 @@ mod tests {
     #[tokio::test]
     async fn solve1() {
         let lines = load_lines("day_19.txt").await.unwrap();
-        let result = Solution::solve1(lines);
+        let result = Solution::find_acceptable_parts(lines);
         println!("{result:?}");
     }
 
     #[tokio::test]
     async fn solve2() {
         let lines = load_lines("day_19.txt").await.unwrap();
-        let result = Solution::solve2(lines);
+        let result = Solution::find_number_of_acceptable_param_combinations(lines);
         println!("{result:?}");
     }
 }
