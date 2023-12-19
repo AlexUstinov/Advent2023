@@ -116,7 +116,7 @@ impl Solution {
     }
 
     pub fn find_number_of_acceptable_param_combinations(lines: Vec<String>) -> i64 {
-        use std::collections::{HashMap};
+        use std::collections::HashMap;
 
         let mut flow_lines = Vec::new();
         for ln in lines {
