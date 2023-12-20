@@ -1,5 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
+use num_integer::Integer;
+
 pub struct Solution;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -123,7 +125,6 @@ fn convert_to_map<'a>(devices: &'a mut Vec<Device>) -> HashMap<String, &'a mut D
     device_map
 }
 
-
 impl Solution {
     pub fn get_pulse_count(lines: Vec<String>, requested_iterations: i64) -> i64 {
         let mut devices = parse_lines(lines);
@@ -164,6 +165,83 @@ impl Solution {
 
         low_count * high_count
     }
+
+    pub fn count_init_cycles(lines: Vec<String>) -> i64 {
+        let mut devices = parse_lines(lines);
+        let mut device_map = convert_to_map(&mut devices);
+        let mut rx_inputs = HashMap::<String, Option<i64>>::new();
+        let rx = String::from("rx");
+        for device in device_map.values() {
+            let (name, outputs) = match device {
+                Device::Broadcaster(DeviceData { ref name, ref outputs}) => (name, outputs),
+                Device::FlipFlop(DeviceData { ref name, ref outputs}, _) => (name, outputs),
+                Device::Conjunction(DeviceData { ref name, ref outputs}, _) => (name, outputs),
+            };
+            for out in outputs {
+                if out==&rx {
+                    if let Some(Device::Conjunction(_, ConjunctionState { prev_signals })) = device_map.get(name) {
+                        for input in prev_signals.keys() {
+                            rx_inputs.insert(input.clone(), None);
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut cycle_count = 0;
+        loop {
+            if rx_inputs.values().all(|val| val.is_some()) {
+                break rx_inputs.values().copied().filter_map(|val| val).reduce(|acc, val| acc.lcm(&val)).unwrap();
+            }
+
+            cycle_count += 1;
+            let mut queue = VecDeque::new();
+            let broadcaster = String::from("broadcaster");
+            queue.push_back((String::from("button"), broadcaster, PulseType::Low));
+            while let Some((from, to, pulse)) = queue.pop_front() {
+                if let Some(rx_input) = rx_inputs.get_mut(&from) {
+                    if rx_input.is_none() && pulse==PulseType::High {
+                        *rx_input = Some(cycle_count);
+                    }
+                }
+                if let Some(device) = device_map.get_mut(&to) {
+                    match device {
+                        Device::Broadcaster(DeviceData {ref name, ref outputs }) => {
+                            for output in outputs {
+                                queue.push_back((name.clone(), output.clone(), pulse));
+                            }
+                        },
+                        Device::FlipFlop(DeviceData {ref name, ref outputs, ..}, ref mut state) if pulse==PulseType::Low => {
+                            let next_pulse = if *state==FlipFlopState::Off {
+                                *state=FlipFlopState::On;
+                                PulseType::High
+                            } else {
+                                *state=FlipFlopState::Off;
+                                PulseType::Low
+                            };
+                            for output in outputs {
+                                queue.push_back((name.clone(), output.clone(), next_pulse));
+                            }
+                        },
+                        Device::Conjunction(DeviceData {ref name, ref outputs, ..}, ConjunctionState { ref mut prev_signals }) => {
+                            if let Some(saved_pulse) = prev_signals.get_mut(&from) {
+                                *saved_pulse = pulse;
+                            }
+                            let next_pulse = if prev_signals.values().any(|&saved_pulse| saved_pulse==PulseType::Low) {
+                                PulseType::High
+                            } else {
+                                PulseType::Low
+                            };
+                            for output in outputs {
+                                queue.push_back((name.clone(), output.clone(), next_pulse));
+                            }
+                        },
+                        _ => continue,
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -175,7 +253,14 @@ mod tests {
     #[tokio::test]
     async fn solve1() {
         let lines = load_lines("day_20.txt").await.unwrap();
-        let result = Solution::get_pulse_count(lines, 1000000);
+        let result = Solution::get_pulse_count(lines, 1000);
+        println!("{result:?}");
+    }
+
+    #[tokio::test]
+    async fn solve2() {
+        let lines = load_lines("day_20.txt").await.unwrap();
+        let result = Solution::count_init_cycles(lines);
         println!("{result:?}");
     }
 }
