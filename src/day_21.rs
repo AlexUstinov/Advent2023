@@ -42,8 +42,14 @@ impl Solution {
             let steps_to_go = steps - dist;
             let segment_size = dimensions[i % 2] as i64;
             let last_segment_steps = if steps_to_go % segment_size == 0 { segment_size } else { steps_to_go % segment_size };
-            let num_segments = steps_to_go / segment_size - (steps_to_go % segment_size == 0).then_some(1).unwrap_or(0);
-            total_count += count_num_of_reachable_points(start, last_segment_steps-1, &garden); // one step to "step in"
+            let num_of_ending_segments = (steps_to_go % segment_size == 0).then_some(2).unwrap_or(1);
+            let num_segments = steps_to_go / segment_size - num_of_ending_segments;
+            let mut shift = 0;
+            for _ in 0..num_of_ending_segments {
+                let num_reachable_points = count_num_of_reachable_points(start, shift + last_segment_steps-1, &garden);
+                total_count += num_reachable_points; // one step to "step in"
+                shift += segment_size;
+            }
             let first_beam_segment_is_odd = !is_odd_num_of_steps;
             let half_num_of_segments = num_segments / 2;
             total_count += if first_beam_segment_is_odd {
@@ -59,10 +65,17 @@ impl Solution {
             let steps_to_go = steps - dist - 1;
             let segment_size = dimensions[i % 2] as i64; // assume dimensions are equal
             let last_segment_steps = if steps_to_go % segment_size == 0 { segment_size } else { steps_to_go % segment_size };
-            let num_segments = steps_to_go / segment_size - (steps_to_go % segment_size == 0).then_some(1).unwrap_or(0);
-            let last_segment_points = count_num_of_reachable_points(start, last_segment_steps-1, &garden); // one step to "step in"
+            let num_of_ending_segments = (steps_to_go % segment_size == 0).then_some(2).unwrap_or(1);
+            let num_segments = steps_to_go / segment_size - num_of_ending_segments;
+
             let last_line_size = (steps_to_go + segment_size - 1) / segment_size;
-            total_count += last_line_size * last_segment_points;
+            let mut shift = 0;
+            for i in 0..num_of_ending_segments {
+                let num_reachable_points = count_num_of_reachable_points(start, shift + last_segment_steps-1, &garden);
+                total_count += (last_line_size - i) * num_reachable_points;
+                shift += segment_size;
+            }
+
             let (odd_segment_count, even_segment_count) = if is_odd_num_of_steps { (odd_reachable, even_reachable) } else { (even_reachable, odd_reachable) };
             let num_of_even_segment_lines = num_segments / 2;
             let num_of_odd_segment_lines = num_segments - num_of_even_segment_lines;
