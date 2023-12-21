@@ -42,14 +42,9 @@ impl Solution {
             let steps_to_go = steps - dist;
             let segment_size = dimensions[i % 2] as i64;
             let last_segment_steps = if steps_to_go % segment_size == 0 { segment_size } else { steps_to_go % segment_size };
-            let num_of_ending_segments = (steps_to_go % segment_size == 0).then_some(2).unwrap_or(1);
-            let num_segments = steps_to_go / segment_size - num_of_ending_segments;
-            let mut shift = 0;
-            for _ in 0..num_of_ending_segments {
-                let num_reachable_points = count_num_of_reachable_points(start, shift + last_segment_steps-1, &garden);
-                total_count += num_reachable_points; // one step to "step in"
-                shift += segment_size;
-            }
+            let num_segments = steps_to_go / segment_size - (steps_to_go % segment_size == 0).then_some(1).unwrap_or(0);
+            let last_segment_count = count_num_of_reachable_points(start, last_segment_steps-1, &garden); // one step to "step in"
+            total_count += last_segment_count;
             let first_beam_segment_is_odd = !is_odd_num_of_steps;
             let half_num_of_segments = num_segments / 2;
             total_count += if first_beam_segment_is_odd {
@@ -65,8 +60,9 @@ impl Solution {
             let steps_to_go = steps - dist - 1;
             let segment_size = dimensions[i % 2] as i64; // assume dimensions are equal
             let last_segment_steps = if steps_to_go % segment_size == 0 { segment_size } else { steps_to_go % segment_size };
-            let num_of_ending_segments = (steps_to_go % segment_size == 0).then_some(2).unwrap_or(1);
-            let num_segments = steps_to_go / segment_size - num_of_ending_segments;
+
+            let num_of_ending_segments = (steps_to_go % segment_size == 0).then_some(1).unwrap_or(2);
+            let num_segments = (steps_to_go + segment_size - 1) / segment_size - num_of_ending_segments;
 
             let last_line_size = (steps_to_go + segment_size - 1) / segment_size;
             let mut shift = 0;
@@ -118,7 +114,7 @@ fn calculate_distances(distances: &mut HashMap<(usize, usize), Option<i64>>, gar
         for _ in 0..size {
             if let Some(plot) = queue.pop_front() {
                 if let Some(opt_dist) = distances.get_mut(&plot) {
-                    opt_dist.insert(distance);
+                    _ = opt_dist.insert(distance);
                     hit_count += 1;
                 }
                 for next_plot in enum_next_plots(plot, garden).filter(|&p| visited.insert(p)) {
@@ -136,19 +132,19 @@ fn get_odd_even_reachable(garden: &[Vec<u8>], x0: usize, y0: usize) -> (i64, i64
 
     for step in 1..=262 {
         let mut visited = HashSet::new();
-        let size = queue.len() as i64;
-        if step>=261 {
-            if step % 2 == 0 {
-                even_reachable = size;
-            } else {
-                odd_reachable = size;
-            }
-        }
-        for _ in 0..size {
+        for _ in 0..queue.len() {
             if let Some(plot) = queue.pop_front() {
                 for next_plot in enum_next_plots(plot, garden).filter(|&p| visited.insert(p)) {
                     queue.push_back(next_plot);
                 }
+            }
+        }
+        if step>=261 {
+            let size = queue.len() as i64;
+            if step % 2 == 0 {
+                even_reachable = size;
+            } else {
+                odd_reachable = size;
             }
         }
     }
@@ -212,6 +208,7 @@ mod tests {
     async fn solve2() {
         let lines = load_lines("day_21.txt").await.unwrap();
         let result = Solution::get_extended_num_of_reachable_plots(lines.iter().map(|ln| ln.bytes().collect::<Vec<u8>>()).collect::<Vec<_>>(), 26501365);
+//        let result = Solution::get_extended_num_of_reachable_plots(lines.iter().map(|ln| ln.bytes().collect::<Vec<u8>>()).collect::<Vec<_>>(), 131*4 + 65);
         println!("{result:?}");
     }
 }
