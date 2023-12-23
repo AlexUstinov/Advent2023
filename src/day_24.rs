@@ -34,7 +34,34 @@ impl Solution {
             }
         }
 
+
         collision_count
+    }
+
+    // Part 2 (code) was very fun. Given explicit mention of integer positions and velocities,
+    // I realized that if rock's initial position is (x_r, y_r, z_r) and it has velocity (dx_r, dy_r, dz_r) then
+    // for each hailstone i, (x_r + y_r + z_r) ≡ (x_i + y_i + z_i) mod ((dx_i+dy_i+dz_i) - (dx_r+dy_r+dz_r)).
+    // The insight is that we don't care about individual dimensions, only sums of all dimensions.
+    // Therefore, I iterate over what I though of as a reasonable range for values of dx_r+dy_r+dz_r based on inputs,
+    // apply Chinese remainder theorem to compute x_r+y_r+z_r candidates, eliminate any candidates that result
+    // in any collisions in the past or at non-integer time, and get at the answer.
+
+    pub fn get_start_position(lines: Vec<String>) -> i64 {
+        // (x_r + y_r + z_r) ≡ (x_i + y_i + z_i) mod ((dx_i+dy_i+dz_i) - (dx_r+dy_r+dz_r))
+        // https://github.com/admp/aoc-2023/blob/main/24/p2.py
+        let hailstones = parse_lines(lines);
+
+        // ans 786617045860267
+
+        // s_r = x_r+y_r+z_r
+        // sd_r = dx_r+dy_r+dz_r
+        let (mut s, mut sd) = (vec![], vec![]);
+        for ((x, y, z), (dx, dy, dz)) in hailstones {
+            s.push(x+y+z);
+            sd.push(dx+dy+dz);
+        }
+
+        0
     }
 }
 
@@ -62,4 +89,14 @@ mod tests {
         let result = Solution::get_num_crossing_points(lines, 200000000000000, 400000000000000);
         println!("{result:?}")
     }
+
+    #[tokio::test]
+    async fn solve2() {
+        // let lines = load_lines("day_24_sample.txt").await.unwrap();
+        // let result = Solution::solve1(lines, 7, 27);
+        let lines = load_lines("day_24.txt").await.unwrap();
+        let result = Solution::get_start_position(lines);
+        println!("{result:?}")
+    }
+
 }
